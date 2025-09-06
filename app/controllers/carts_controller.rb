@@ -1,4 +1,6 @@
 class CartsController < ApplicationController
+
+  before_action :set_cart, only: %i[ show ]
   
   def create
     cart = find_or_create_cart
@@ -14,6 +16,14 @@ class CartsController < ApplicationController
     rescue ActiveRecord::RecordInvalid => e
       render json: { error: e.record.errors.full_messages }, status: :unprocessable_entity
   end 
+  
+  def show
+    if @cart.nil?
+      return render json: { error: "Carrinho não encontrado" }, status: :not_found
+    end
+
+    render json: CartSerializer.new(@cart).as_json, status: :ok
+  end
 
   private 
 
@@ -23,11 +33,16 @@ class CartsController < ApplicationController
     params.permit(:product_id, :quantity)
   end
 
+  def set_cart
+    return nil if session[:cart_id].blank?
+    @cart = Cart.find(session[:cart_id])
+  end
+
   def find_or_create_cart
     current_cart = session[:cart_id]
 
     if current_cart.present?
-      cart = Cart.find_by(id: session[:cart_id])
+      cart = Cart.find(session[:cart_id])
     else
       cart = Cart.create!(last_interation_at: Time.current,
                            status: 'active')
