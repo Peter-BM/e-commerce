@@ -1,6 +1,6 @@
 class CartsController < ApplicationController
 
-  before_action :set_cart, only: %i[ show ]
+  before_action :set_cart, only: %i[ show add_item ]
   
   def create
     cart = find_or_create_cart
@@ -23,6 +23,23 @@ class CartsController < ApplicationController
     end
 
     render json: CartSerializer.new(@cart).as_json, status: :ok
+  end
+  
+  def add_item
+    if @cart.nil?
+      return render json: { error: "Carrinho não encontrado" }, status: :not_found
+    end
+    
+    cart = AddItemToCartService.call(@cart, cart_params[:product_id], cart_params[:quantity])
+    
+    render json: CartSerializer.new(cart).as_json, status: :created
+
+    rescue ActiveRecord::RecordNotFound
+      render json: { error: "Produto não encontrado" }, status: :not_found
+    rescue ActionController::ParameterMissing
+      render json: { error: "Produto e quantidade devem ser informados" }, status: :bad_request
+    rescue ActiveRecord::RecordInvalid => e
+      render json: { error: e.record.errors.full_messages }, status: :unprocessable_entity
   end
 
   private 
