@@ -1,6 +1,6 @@
 class AddItemToCartService
 
-  def add_item(cart, product_id, quantity)
+  def self.call(cart, product_id, quantity)
     product = Product.find(product_id)
     
     Cart.transaction do 
@@ -17,7 +17,7 @@ class AddItemToCartService
       item.total_price = item.quantity * product.unit_price
       item.save!  
 
-      cart.update(last_interation_at: Time.current)
+      cart.update!(last_interation_at: Time.current)
     end
 
     cart.reload

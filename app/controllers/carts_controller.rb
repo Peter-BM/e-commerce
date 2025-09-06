@@ -1,10 +1,8 @@
 class CartsController < ApplicationController
   
   def create
-    add_item_service = AddItemToCartService.new()
-
     cart = find_or_create_cart
-    cart = add_item_service.add_item(cart, cart_params[:product_id], cart_params[:quantity])
+    cart = AddItemToCartService.call(cart, cart_params[:product_id], cart_params[:quantity])
     session[:cart_id] = cart.id
     render json: cart.as_json, status: :created
 
