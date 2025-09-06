@@ -3,8 +3,9 @@ class CartsController < ApplicationController
   def create
     cart = find_or_create_cart
     cart = AddItemToCartService.call(cart, cart_params[:product_id], cart_params[:quantity])
-    session[:cart_id] = cart.id
-    render json: cart.as_json, status: :created
+    session[:cart_id] ||= cart.id
+    
+    render json: CartSerializer.new(cart).as_json, status: :created
 
     rescue ActiveRecord::RecordNotFound
       render json: { error: "Produto não encontrado" }, status: :not_found
@@ -26,7 +27,7 @@ class CartsController < ApplicationController
     current_cart = session[:cart_id]
 
     if current_cart.present?
-      cart ||= Cart.find_by(id: session[:cart_id])
+      cart = Cart.find_by(id: session[:cart_id])
     else
       cart = Cart.create!(last_interation_at: Time.current,
                            status: 'active')
