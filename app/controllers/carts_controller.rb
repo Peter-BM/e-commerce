@@ -1,10 +1,10 @@
 class CartsController < ApplicationController
 
-  before_action :set_cart, only: %i[ show add_item ]
+  before_action :set_cart, only: %i[ show add_item remove_item ]
   
   def create
     cart = find_or_create_cart
-    cart = AddItemToCartService.call(cart, cart_params[:product_id], cart_params[:quantity])
+    cart = HandleProductService.add_item(cart, cart_params[:product_id], cart_params[:quantity])
     session[:cart_id] ||= cart.id
     
     render json: CartSerializer.new(cart).as_json, status: :created
@@ -18,19 +18,17 @@ class CartsController < ApplicationController
   end 
   
   def show
-    if @cart.nil?
-      return render json: { error: "Carrinho não encontrado" }, status: :not_found
-    end
+    
+    return render json: { error: "Carrinho não encontrado" }, status: :not_found if @cart.nil?
 
     render json: CartSerializer.new(@cart).as_json, status: :ok
   end
   
   def add_item
-    if @cart.nil?
-      return render json: { error: "Carrinho não encontrado" }, status: :not_found
-    end
     
-    cart = AddItemToCartService.call(@cart, cart_params[:product_id], cart_params[:quantity])
+    return render json: { error: "Carrinho não encontrado" }, status: :not_found if @cart.nil?
+    
+    cart = HandleProductService.add_item(@cart, cart_params[:product_id], cart_params[:quantity])
     
     render json: CartSerializer.new(cart).as_json, status: :created
 
@@ -40,6 +38,16 @@ class CartsController < ApplicationController
       render json: { error: "Produto e quantidade devem ser informados" }, status: :bad_request
     rescue ActiveRecord::RecordInvalid => e
       render json: { error: e.record.errors.full_messages }, status: :unprocessable_entity
+  end
+
+  def remove_item
+   return render json: { error: "Carrinho não encontrado" }, status: :not_found if @cart.nil?
+
+    cart = HandleProductService.remove_item(@cart, params[:product_id])
+    render json: CartSerializer.new(cart).as_json, status: :ok
+    
+    rescue ArgumentError => e
+      render json: { error: e.message }, status: :bad_request
   end
 
   private 
