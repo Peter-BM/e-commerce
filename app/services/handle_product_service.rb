@@ -1,6 +1,6 @@
-class AddItemToCartService
+class HandleProductService
 
-  def self.call(cart, product_id, quantity)
+  def self.add_item(cart, product_id, quantity)
     product = Product.find(product_id)
     
     Cart.transaction do 
@@ -20,6 +20,17 @@ class AddItemToCartService
       cart.update!(last_interation_at: Time.current)
     end
 
+    cart.reload
+  end
+
+  def self.remove_item(cart, product_id)
+    Cart.transaction do
+      item = cart.cart_items.find_by(product_id: product_id)
+      raise ArgumentError, "O produto não está no carrinho ou não existe" unless item
+
+      item.destroy!
+      cart.update!(last_interation_at: Time.current)
+    end
     cart.reload
   end
 end
