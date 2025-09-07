@@ -31,7 +31,7 @@ O objetivo é implementar uma API de carrinho de compras com endpoints para adic
 - **DELETE `/cart/:product_id`**: remove um produto do carrinho.  
 
 > Observação: a API utiliza **sessão** para identificar o carrinho.  
-Ao testar via `curl` ou ferramentas como Postman, lembre-se de manter o **cookie de sessão** entre as requisições para simular o mesmo usuário/carrinho.
+Ao testar via `curl` ou ferramentas como Postman, lembre-se de manter o **cookie de sessão** entre as requisições para simular o mesmo carrinho.
 
 ---
 
